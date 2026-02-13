@@ -1,0 +1,74 @@
+#include <Adafruit_NeoPixel.h>
+
+#define LED_PIN 5    
+#define LED_COUNT 8
+#define SENSOR_PIN 4 
+
+Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
+
+
+void setup() {
+  Serial.begin(115200);
+  strip.begin();
+  strip.setBrightness(50);
+  strip.show();
+  
+}
+
+unsigned long lastTime = 0;
+const unsigned long period = 100;
+int sensorValue = 0;
+
+uint8_t r=0,g=0,b=0;
+uint8_t pattern[LED_COUNT][3];
+int count = 0;
+bool periodBool = false;
+int brightness = 100;
+
+void loop() {
+  if(millis() - lastTime >= period){
+    lastTime = millis();
+
+    sensorValue = analogRead(SENSOR_PIN);
+    Serial.println(sensorValue);
+
+    if(sensorValue<1000){
+      r = brightness,g = 0,b = 0;
+    }else if(sensorValue<1500){
+      r = 0,g = brightness,b = 0;
+    }else if(sensorValue<2000){
+      r = 0,g = 0,b = brightness;
+    }else if(sensorValue<2500){
+      r = brightness,g = brightness,b = 0;
+    }else if(sensorValue<3000){
+      r = 0,g = brightness,b = brightness;
+    }else if(sensorValue<3500){
+      r = brightness,g = 0,b = brightness;
+    }else{
+      r=brightness,g=brightness,b=brightness;
+    }
+
+    for(int i=LED_COUNT-1;i>0;i--){
+      pattern[i][0] = pattern[i-1][0];
+      pattern[i][1] = pattern[i-1][1];
+      pattern[i][2] = pattern[i-1][2];
+  
+    }
+
+    pattern[0][0] = r;
+    pattern[0][1] = g;
+    pattern[0][2] = b;
+    
+    for(int i=0;i<LED_COUNT;i++){
+      strip.setPixelColor(i,
+        pattern[i][0],
+        pattern[i][1],
+        pattern[i][2]
+      );
+    }
+    strip.show();
+    
+    count = (count+1) % LED_COUNT; 
+  }
+}
+
